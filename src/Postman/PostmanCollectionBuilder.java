@@ -9,19 +9,29 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
-
+import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 import java.util.Scanner;
+import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.persistence.Transient;
 
+
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.google.gson.Gson;
@@ -30,6 +40,7 @@ import com.thoughtworks.paranamer.AnnotationParanamer;
 import com.thoughtworks.paranamer.BytecodeReadingParanamer;
 import com.thoughtworks.paranamer.CachingParanamer;
 import com.thoughtworks.paranamer.Paranamer;
+
 
 
 public class PostmanCollectionBuilder {
@@ -46,8 +57,7 @@ public class PostmanCollectionBuilder {
 	Class[] input_classes  = {};
 	private String prefix_url = "{{url}}/";
 
-	String header;
-
+	private HashMap<String, String> header = new HashMap<>();
 	private String schema = "https://schema.getpostman.com/json/collection/v2.0.0/collection.json";
 	private Properties key_value_properties;
 
@@ -64,17 +74,39 @@ public class PostmanCollectionBuilder {
 
 
 	/**
-	 * @
-	 * @param project_name
-	 * @param collectionBuilderProperties
-	 * @param output_file_path
-	 * @param input_classes
-	 * @param key_value_property_file_path
-	 * @throws Exception
+	 * 
+
+	 * 
+	 * Example
+	 * Class[] input_classes = {AdminController.class};
+		PostmanCollectionBuilder builder  = new PostmanCollectionBuilder("Test", new CollectionBuilderProperties() {
+			
+			@Override
+			public String getUrl(Method method) {
+				
+				if(method.isAnnotationPresent(RequestMapping.class)){
+					return method.getAnnotation(RequestMapping.class).value()[0];
+				}else{
+					return null;
+				}
+			}
+			
+			@Override
+			public String getHttpMethod(Method method) {
+				// TODO Auto-generated method stub
+				if(method.isAnnotationPresent(RequestMapping.class)){
+					return method.getAnnotation(RequestMapping.class).method()[0].name();
+				}else{
+					return null;
+				}
+			}
+		}, "/home/piyush/Desktop/collection.json",input_classes, null);
+		
+		builder.addHeader("api-token", "(.*)");
+		
+		builder.build();
 	 * 
 	 */
-	
-	
 	public PostmanCollectionBuilder(String project_name, CollectionBuilderProperties collectionBuilderProperties,
 			String output_file_path, Class[] input_classes, String key_value_property_file_path) throws Exception {
 		super();
@@ -88,33 +120,35 @@ public class PostmanCollectionBuilder {
 		this.key_value_properties =  new Properties();
 		this.key_value_propery_file_path = key_value_property_file_path;
 		
-		File file  = new File(this.key_value_propery_file_path);
-		if(!file.exists()){
-			try {
-				file.createNewFile();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+		if(this.key_value_propery_file_path!=null){
+			File file  = new File(this.key_value_propery_file_path);
+			if(!file.exists()){
+				try {
+					file.createNewFile();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
+
+			UniqueParams uniqueParams = new UniqueParams(input_classes, key_value_propery_file_path);
+			uniqueParams.get();
+
+			openFileInEditor(key_value_propery_file_path);
+			String ans  = "N";
+			System.out.println("A file has opened in your text editor, \nplease fill the necessary details, \nsave the file and write \"Y\" in the console \nand press ENTER");
+			Scanner scan = new Scanner(System.in);
+			ans = scan.next();
+
+			if(!ans.equalsIgnoreCase("Y")){
+				throw new Exception("Fill file and enter Y");
+			}
+			//		while(true){
+			//			if(ans.equalsIgnoreCase("Y"))
+			//				break;
+			//		}
+			readKeyValuePropertiesFile();
 		}
-		
-		UniqueParams uniqueParams = new UniqueParams(input_classes, key_value_propery_file_path);
-		uniqueParams.get();
-		
-		openFileInEditor(key_value_propery_file_path);
-		String ans  = "N";
-		System.out.println("A file has opened in your text editor, \nplease fill the necessary details, \nsave the file and write \"Y\" in the console \nand press ENTER");
-		Scanner scan = new Scanner(System.in);
-		ans = scan.next();
-		
-		if(!ans.equalsIgnoreCase("Y")){
-			throw new Exception("Fill file and enter Y");
-		}
-//		while(true){
-//			if(ans.equalsIgnoreCase("Y"))
-//				break;
-//		}
-		readKeyValuePropertiesFile();
 		
 		System.out.println("PostMan Collection Successfully created");
 	}
@@ -338,6 +372,7 @@ public class PostmanCollectionBuilder {
 		}
 		
 		Request request = createRequest(method, http_method, url);
+		setHeaderInRequest(request);
 		item.setRequest(request);
 		
 
@@ -599,6 +634,34 @@ public class PostmanCollectionBuilder {
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
+	}
+	
+	private void setHeaderInRequest(Request request){
+		ArrayList<Formdata> formdatas = new ArrayList<>();
+		for(String key : header.keySet()){
+			Pattern pattern = Pattern.compile(this.header.get(key));
+			Matcher matcher = pattern.matcher(request.getUrl());
+			System.out.println(matcher.matches());
+	        if(matcher.matches()){
+	        	Formdata header = new Formdata();
+	        	header.setKey(key);
+	        	header.setValue("1234");
+	        	formdatas.add(header);
+	        }
+		}
+		request.setHeader(formdatas);
+	}
+	
+	public void addHeader(String key, String regex) throws IncorrectInputException{
+		if(regex==null)
+			throw new  IncorrectInputException("Pattern cannot be null");
+		if(regex.isEmpty())
+			regex = "(.*)";
+		header.put(key, regex);
+	}
+	
+	public void removeHeader(String key){
+		header.remove(key);
 	}
 
 
