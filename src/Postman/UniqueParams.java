@@ -1,6 +1,5 @@
 package Postman;
 
-
 import java.io.BufferedWriter;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -24,70 +23,55 @@ import com.thoughtworks.paranamer.BytecodeReadingParanamer;
 import com.thoughtworks.paranamer.CachingParanamer;
 import com.thoughtworks.paranamer.Paranamer;
 
-//import corporate_stop.Modules.BusTracking.BusTrackingController;
-//import corporate_stop.Modules.Complaints.ComplaintController;
-//import corporate_stop.Modules.Diary.MyDiaryController;
-//import corporate_stop.Modules.Feedback.FeedbackController;
-//import corporate_stop.Modules.FileManager.FIleManagerController;
-//import corporate_stop.Modules.Gallery.GalleryController;
-//import corporate_stop.Modules.GenericChat.GenericChatController;
-//import corporate_stop.Modules.GradeBook.GradeBookController;
-//import corporate_stop.Modules.IAUM.IAUMController;
-//import corporate_stop.Modules.Leave.LeaveController;
-//import corporate_stop.Modules.NoticesModule.NoticesController;
-//import corporate_stop.Modules.Search.SearchController;
-//import corporate_stop.Modules.SyllabusTracking.SYTrCOntroller;
-//import corporate_stop.Modules.TimeLine.TimeLineController;
-//import corporate_stop.Modules.TimeTable.TimeTableController;
-//import corporate_stop.controllers.AdminController;
-//import corporate_stop.controllers.ClassController;
-//import corporate_stop.controllers.ImageUpload;
-//import corporate_stop.controllers.LoginController;
-//import corporate_stop.controllers.ParentController;
-//import corporate_stop.controllers.StudentController;
-//import corporate_stop.controllers.SuperAdminController;
-//import corporate_stop.controllers.TeacherController;
-//import corporate_stop.utils.postman.Body;
-//import corporate_stop.utils.postman.Formdata;
-//import corporate_stop.utils.postman.Item;
-//import corporate_stop.utils.postman.Potsman;
-//import corporate_stop.utils.postman.Request;
+import corporate_stop.Modules.BusTracking.BusTrackingController;
+import corporate_stop.Modules.Complaints.ComplaintController;
+import corporate_stop.Modules.Diary.MyDiaryController;
+import corporate_stop.Modules.Feedback.FeedbackController;
+import corporate_stop.Modules.FileManager.FIleManagerController;
+import corporate_stop.Modules.Gallery.GalleryController;
+import corporate_stop.Modules.GenericChat.GenericChatController;
+import corporate_stop.Modules.GradeBook.GradeBookController;
+import corporate_stop.Modules.IAUM.IAUMController;
+import corporate_stop.Modules.Leave.LeaveController;
+import corporate_stop.Modules.NoticesModule.NoticesController;
+import corporate_stop.Modules.Search.SearchController;
+import corporate_stop.Modules.SyllabusTracking.SYTrCOntroller;
+import corporate_stop.Modules.TimeLine.TimeLineController;
+import corporate_stop.Modules.TimeTable.TimeTableController;
+import corporate_stop.controllers.AdminController;
+import corporate_stop.controllers.ClassController;
+import corporate_stop.controllers.ImageUpload;
+import corporate_stop.controllers.LoginController;
+import corporate_stop.controllers.ParentController;
+import corporate_stop.controllers.StudentController;
+import corporate_stop.controllers.SuperAdminController;
+import corporate_stop.controllers.TeacherController;
+import corporate_stop.utils.postman.Body;
+import corporate_stop.utils.postman.Formdata;
+import corporate_stop.utils.postman.Item;
+import corporate_stop.utils.postman.Potsman;
+import corporate_stop.utils.postman.Request;
 
 public class UniqueParams {
 
-	static Class[] classes ={
-//			AdminController.class, 
-//			ClassController.class, 
-//			ImageUpload.class,
-//			LoginController.class,
-//			ParentController.class, 
-//			StudentController.class, 
-//			SuperAdminController.class, 
-//			TeacherController.class,
-//			BusTrackingController.class,
-//			ComplaintController.class,
-//			MyDiaryController.class,
-//			FeedbackController.class,
-//			FIleManagerController.class,
-//			GalleryController.class,
-//			GenericChatController.class,
-//			GradeBookController.class,
-//			IAUMController.class,
-//			LeaveController.class,
-//			NoticesController.class,
-//			SearchController.class,
-//			SuperAdminController.class,
-//			SYTrCOntroller.class,
-//			TimeLineController.class,
-//			TimeTableController.class,
-		};
-	static Set<String> unique_params = new HashSet<>();
-	static Paranamer info = new CachingParanamer(new AnnotationParanamer(new BytecodeReadingParanamer()));
-	public static void main(String[] args) {
-		
-		
-		
-		
+	Class[] classes ={};
+	private Set<String> unique_params = new HashSet<>();
+	private Paranamer info = new CachingParanamer(new AnnotationParanamer(new BytecodeReadingParanamer()));
+	String output_file_path;
+	
+	
+	
+	
+	
+	public UniqueParams(Class[] classes, String output_file_path) {
+		super();
+		this.classes = classes;
+		this.output_file_path = output_file_path;
+	}
+
+
+
+	public void get(){
 		for(Class t : classes){
 
 			for(Method method : t.getDeclaredMethods()){
@@ -99,13 +83,11 @@ public class UniqueParams {
 						if(method.getParameters()[i].getAnnotation(ModelAttribute.class)!=null){
 							ArrayList<Formdata> formDataFromModel = getFormDataFromModel(method.getParameters()[i].getType());
 							for(Formdata formdata  : formDataFromModel){
-								System.out.println(t.getCanonicalName() +" " + method.getName() + " " + formdata.getKey());
 								setUniqueParam(formdata.getKey());
 							}
 							
 						}else{
 							if(method.getParameters()[i].getType().equals(Long.class)){
-								System.out.println(t.getCanonicalName() +" " + method.getName() + " " + info.lookupParameterNames(method)[i]);
 								setUniqueParam(info.lookupParameterNames(method)[i]);
 							}
 							
@@ -122,12 +104,23 @@ public class UniqueParams {
 		
 		
 		writeToFile(unique_params);
+		System.out.println("Unique params successfully fetched");
 
+	}
+	
+	
+	
+	public static void main(String[] args) {
+		
+		
+		
+		
+		
 
 	}
 
 
-	private static void setUniqueParam(String key) {
+	private void setUniqueParam(String key) {
 		// TODO Auto-generated method stub
 		if(!unique_params.contains(key))
 			unique_params.add(key);
@@ -147,7 +140,7 @@ public class UniqueParams {
 		return formdatas;
 	}
 	
-	private static void writeToFile(Set<String> unique_params2) {
+	private  void writeToFile(Set<String> unique_params2) {
 		// TODO Auto-generated method stub
 		
 		Iterator itr = unique_params.iterator();
@@ -155,7 +148,7 @@ public class UniqueParams {
 		BufferedWriter writer = null;
 		try {
 		    writer = new BufferedWriter(new OutputStreamWriter(
-		          new FileOutputStream("/home/piyush/Desktop/uniqueparam.json"),"ASCII"));
+		          new FileOutputStream(this.output_file_path),"ASCII"));
 		    while(itr.hasNext()){
 		    	writer.append(itr.next().toString());
 		    	writer.append("=\n");

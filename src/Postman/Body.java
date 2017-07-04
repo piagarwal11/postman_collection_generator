@@ -1,6 +1,5 @@
 package Postman;
 
-
 import java.util.ArrayList;
 
 public class Body {
