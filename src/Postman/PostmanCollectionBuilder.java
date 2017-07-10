@@ -106,7 +106,7 @@ public class PostmanCollectionBuilder {
 		
 		builder.build();
 	 * 
-	 */
+	 **/
 	public PostmanCollectionBuilder(String project_name, CollectionBuilderProperties collectionBuilderProperties,
 			String output_file_path, Class[] input_classes, String key_value_property_file_path) throws Exception {
 		super();
