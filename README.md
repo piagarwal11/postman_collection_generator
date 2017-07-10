@@ -2,7 +2,7 @@
 Postman collection generator for Spring Rest API
 
 # Steps to Use
-1. download jar file from /bin
+1. download and impor jar file from https://s3.ap-south-1.amazonaws.com/letsdoitweb/PostManCollectionGenerator.jar
 2. download/check for required libraries mentioned below
 3. copy sample code and run
 
