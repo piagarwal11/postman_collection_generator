@@ -17,7 +17,7 @@ Postman collection generator for Spring Rest API
 
 
 # Code Sample
-
+```
 Class[] input_classes = {AdminController.class, UserController.class};
 
 PostmanCollectionBuilder builder  = new PostmanCollectionBuilder("Test", new CollectionBuilderProperties() {
@@ -48,4 +48,5 @@ builder.addHeader("refesh-token", "(.*)/admin/(.*)");
 
 
 builder.build();
+```
 
